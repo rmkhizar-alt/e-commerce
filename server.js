@@ -126,29 +126,10 @@ process.on('uncaughtException', (err) => {
 });
 
 // ----------------------------------------------------------------
-// Start server after DB connects
+// Connect to MongoDB. This runs whether the app is started locally
+// (node server.js) or imported as a serverless function (Vercel).
 // ----------------------------------------------------------------
 const MONGO_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
-
-// ----------------------------------------------------------------
-// Start listening immediately instead of waiting for MongoDB to
-// connect first. This makes the site/API reachable right away (fast
-// QR-code / localhost load), while the DB connects in the background.
-// Any route that needs the DB will simply fail until it's ready -
-// that's a much smaller wait than blocking the entire server startup.
-// ----------------------------------------------------------------
-app.listen(PORT, () => {
-  console.log(`[server] Smart Choice 3D API running on port ${PORT}`);
-
-  // WhatsApp notifications are a nice-to-have, not core functionality -
-  // never let a problem here stop the shop from working.
-  try {
-    const { startWhatsApp } = require('./utils/whatsapp');
-    startWhatsApp();
-  } catch (err) {
-    console.error('[server] WhatsApp module failed to load (orders still work normally):', err.message);
-  }
-});
 
 connectDB(MONGO_URI)
   .then(() => {
@@ -157,3 +138,28 @@ connectDB(MONGO_URI)
   .catch((err) => {
     console.error('[db] Failed to connect to MongoDB (server keeps running, but DB-dependent routes will fail):', err.message);
   });
+
+// ----------------------------------------------------------------
+// Only start a normal "always listening" server when this file is run
+// directly on your own computer (node server.js). On Vercel this file
+// is imported as a module instead, so app.listen() below is skipped
+// and Vercel's own runtime handles incoming requests - that also means
+// the WhatsApp bot (which needs a permanently running process) only
+// runs when you start the server locally, not on Vercel. Everything
+// else (orders, delivery app, admin panel, etc.) works the same either
+// way.
+// ----------------------------------------------------------------
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`[server] Smart Choice 3D API running on port ${PORT}`);
+
+    try {
+      const { startWhatsApp } = require('./utils/whatsapp');
+      startWhatsApp();
+    } catch (err) {
+      console.error('[server] WhatsApp module failed to load (orders still work normally):', err.message);
+    }
+  });
+}
+
+module.exports = app;
