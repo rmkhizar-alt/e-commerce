@@ -1,0 +1,42 @@
+# Chrome / WhatsApp automation profile (cache, cookies, history — causes permission errors)
+.chrome-site-profile/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# WhatsApp Web session data
+.wwebjs_auth/
+.wwebjs_cache/
+
+# Environment variables (secrets)
+.env
+password.txt
+
+# Logs
+*.log
+
+# Zip / archive backups
+*.zip
+
+# Large media files not needed for the backend API
+*.glb
+*.mp4
+*.jfif
+*.jpg
+*.jpeg
+*.png
+
+# Static storefront HTML pages (served separately, not by server.js)
+*.html
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+vscode/
+
+# Misc build/temp
+npm
